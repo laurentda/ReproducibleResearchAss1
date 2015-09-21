@@ -1,0 +1,56 @@
+---
+title: "assignment1"
+output: html_document
+---
+
+```{r, echo=FALSE}
+setwd("C:/Users/ephyto/Google Drive/coursera - Data Science Specialization/5 Reproducible Research/week 2 assignment/repdata-data-activity")
+getwd()
+```
+```{r setoptions,echo=TRUE}
+activity <- read.csv("activity.csv")
+dim(activity)
+names(activity)
+```
+###Q1: what is mean total number of steps per day
+
+create new dataset without na values
+```{r}
+nactivity <- na.omit(activity)
+meanTotalSteps <- aggregate(nactivity$steps, list(nactivity$date), sum)
+names(meanTotalSteps) <- c("date", "steps")
+meanTotalSteps
+```
+mean line in magenta, median line in blue, median=mean in our example
+```{r}
+lmts <- nrow(meanTotalSteps)
+hist(meanTotalSteps$steps, breaks=lmts)
+rug(meanTotalSteps$steps)
+abline(v=mean(meanTotalSteps$steps), col="magenta", lwd=4)
+abline(v=median(meanTotalSteps$steps), col="blue", lwd=2)
+```
+```{r}
+mean(meanTotalSteps$steps)
+```
+```{r}
+median(meanTotalSteps$steps)
+```
+
+###What is the average daily activity
+```{r}
+library(plyr)
+#calculate average steps for each of 5-minute inteval during a 24-hour period
+int.mean.steps <- ddply(nactivity, ~interval, summarise, mean=mean(steps))
+```
+```{r}
+library(ggplot2)
+qplot(x=interval, y=mean, data = int.mean.steps, geom = "line", xlab="5 minutes inteval", ylab="Number of Step Count", main="Average Number of Steps Across All Days"
+)
+```
+Report 5-min interval, on average across all the days in the dataset, contains the maximum number of steps
+```{r}
+int.mean.steps[which.max(int.mean.steps$mean),]
+```
+**Observations**
+
+Based on steps taken pattern, the person's daily activity peaks around 8:35am
