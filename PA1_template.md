@@ -1,6 +1,8 @@
 ---
 title: "assignment1"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 
@@ -28,11 +30,14 @@ sessionInfo()
 ##  [9] ggplot2_1.0.1   installr_0.17.0
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_0.12.0      magrittr_1.5     MASS_7.3-40      munsell_0.4.2   
-##  [5] colorspace_1.2-6 highr_0.5        stringr_1.0.0    tools_3.2.1     
-##  [9] grid_3.2.1       gtable_0.1.2     yaml_2.1.13      digest_0.6.8    
-## [13] formatR_1.2      reshape2_1.4.1   evaluate_0.7.2   labeling_0.3    
-## [17] stringi_0.5-5    scales_0.2.5     chron_2.3-47
+##  [1] Rcpp_0.12.0       magrittr_1.5      MASS_7.3-40      
+##  [4] munsell_0.4.2     colorspace_1.2-6  highr_0.5        
+##  [7] stringr_1.0.0     tools_3.2.1       grid_3.2.1       
+## [10] gtable_0.1.2      htmltools_0.2.6   yaml_2.1.13      
+## [13] digest_0.6.8      formatR_1.2       reshape2_1.4.1   
+## [16] rsconnect_0.4.1.2 mime_0.3          evaluate_0.7.2   
+## [19] rmarkdown_0.8     labeling_0.3      stringi_0.5-5    
+## [22] scales_0.2.5      markdown_0.7.7    chron_2.3-47
 ```
 
 
@@ -41,8 +46,11 @@ sessionInfo()
 ```
 
 ```r
-activity <- read.csv("activity.csv")
-dim(activity)
+data <- read.csv("activity.csv")
+
+#convert date to data type
+data$date <- as.Date(data$date)
+dim(data)
 ```
 
 ```
@@ -50,7 +58,7 @@ dim(activity)
 ```
 
 ```r
-names(activity)
+names(data)
 ```
 
 ```
@@ -61,82 +69,29 @@ names(activity)
 create new dataset without na values
 
 ```r
-nactivity <- na.omit(activity)
-meanTotalSteps <- aggregate(nactivity$steps, list(nactivity$date), sum)
-names(meanTotalSteps) <- c("date", "steps")
-meanTotalSteps
-```
+data.ignore.na <- na.omit(data)
+daily.steps <- rowsum(data.ignore.na$steps, format(data.ignore.na$date, '%Y-%m-%d'))
+daily.steps <- data.frame(daily.steps)
+names(daily.steps) <- ("steps")
 
-```
-##          date steps
-## 1  2012-10-02   126
-## 2  2012-10-03 11352
-## 3  2012-10-04 12116
-## 4  2012-10-05 13294
-## 5  2012-10-06 15420
-## 6  2012-10-07 11015
-## 7  2012-10-09 12811
-## 8  2012-10-10  9900
-## 9  2012-10-11 10304
-## 10 2012-10-12 17382
-## 11 2012-10-13 12426
-## 12 2012-10-14 15098
-## 13 2012-10-15 10139
-## 14 2012-10-16 15084
-## 15 2012-10-17 13452
-## 16 2012-10-18 10056
-## 17 2012-10-19 11829
-## 18 2012-10-20 10395
-## 19 2012-10-21  8821
-## 20 2012-10-22 13460
-## 21 2012-10-23  8918
-## 22 2012-10-24  8355
-## 23 2012-10-25  2492
-## 24 2012-10-26  6778
-## 25 2012-10-27 10119
-## 26 2012-10-28 11458
-## 27 2012-10-29  5018
-## 28 2012-10-30  9819
-## 29 2012-10-31 15414
-## 30 2012-11-02 10600
-## 31 2012-11-03 10571
-## 32 2012-11-05 10439
-## 33 2012-11-06  8334
-## 34 2012-11-07 12883
-## 35 2012-11-08  3219
-## 36 2012-11-11 12608
-## 37 2012-11-12 10765
-## 38 2012-11-13  7336
-## 39 2012-11-15    41
-## 40 2012-11-16  5441
-## 41 2012-11-17 14339
-## 42 2012-11-18 15110
-## 43 2012-11-19  8841
-## 44 2012-11-20  4472
-## 45 2012-11-21 12787
-## 46 2012-11-22 20427
-## 47 2012-11-23 21194
-## 48 2012-11-24 14478
-## 49 2012-11-25 11834
-## 50 2012-11-26 11162
-## 51 2012-11-27 13646
-## 52 2012-11-28 10183
-## 53 2012-11-29  7047
+#meanTotalSteps <- aggregate(nactivity$steps, list(nactivity$date), sum)
+#names(meanTotalSteps) <- c("date", "steps")
+#meanTotalSteps
 ```
 mean line in magenta, median line in blue, median=mean in our example
 
 ```r
-lmts <- nrow(meanTotalSteps)
-hist(meanTotalSteps$steps, breaks=lmts)
-rug(meanTotalSteps$steps)
-abline(v=mean(meanTotalSteps$steps), col="magenta", lwd=4)
-abline(v=median(meanTotalSteps$steps), col="blue", lwd=2)
+lmts <- nrow(daily.steps)
+hist(daily.steps$steps, breaks=lmts)
+rug(daily.steps$steps)
+abline(v=mean(daily.steps$steps), col="magenta", lwd=4)
+abline(v=median(daily.steps$steps), col="blue", lwd=1)
 ```
 
 ![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
 
 ```r
-mean(meanTotalSteps$steps)
+mean(daily.steps$steps)
 ```
 
 ```
@@ -144,7 +99,7 @@ mean(meanTotalSteps$steps)
 ```
 
 ```r
-median(meanTotalSteps$steps)
+median(daily.steps$steps)
 ```
 
 ```
@@ -156,12 +111,12 @@ median(meanTotalSteps$steps)
 ```r
 library(plyr)
 #calculate average steps for each of 5-minute inteval during a 24-hour period
-int.mean.steps <- ddply(nactivity, ~interval, summarise, mean=mean(steps))
+interval.mean.steps <- ddply(data.ignore.na, ~interval, summarise, mean=mean(steps))
 ```
 
 ```r
 library(ggplot2)
-qplot(x=interval, y=mean, data = int.mean.steps, geom = "line", xlab="5 minutes inteval", ylab="Number of Step Count", main="Average Number of Steps Across All Days"
+qplot(x=interval, y=mean, data = interval.mean.steps, geom = "line", xlab="5 minutes inteval", ylab="Number of Step Count", main="Average Number of Steps Across All Days"
 )
 ```
 
@@ -171,7 +126,7 @@ Report 5-min interval, on average across all the days in the dataset, contains t
 
 
 ```r
-int.mean.steps[which.max(int.mean.steps$mean),]
+interval.mean.steps[which.max(interval.mean.steps$mean),]
 ```
 
 ```
@@ -193,7 +148,7 @@ library(sqldf)
 ```
 ```
 tNA <- sqldf('SELECT d.* 
-        FROM "activity" as d
+        FROM "data" as d
         WHERE d.steps IS NULL 
         ORDER BY d.date, d.interval')
 ``
@@ -209,8 +164,8 @@ Filling the missing values
 ```r
 t1 <- sqldf('
         SELECT d.*, i.mean 
-        FROM "int.mean.steps" as i 
-        JOIN "activity" as d 
+        FROM "interval.mean.steps" as i 
+        JOIN "data" as d 
         ON d.interval = i.interval 
         ORDER BY d.date, d.interval ')
 
@@ -283,12 +238,13 @@ Make  a panel plot containing a time series plot (i.e. type="|") of the 5-minute
 
 
 ```r
-t1$date <- as.Date(t1$date)
+t1$dateday <- format(t1$date, "%A")
 t1$weektime <- as.factor(ifelse(weekdays(t1$date) %in%
-        c("Saturday", "Sunday"), "weekend", "weekday"))
+        c("samedi", "dimanche"), "weekend", "weekday"))
         
 t5 <- sqldf('
-        SELECT interval, avg(steps) as "mean.steps", weektime             FROM t1 
+        SELECT interval, avg(steps) as "mean.steps", weektime             
+        FROM t1 
         GROUP BY weektime, interval 
         ORDER BY interval')
 ```

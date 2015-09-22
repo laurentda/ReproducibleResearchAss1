@@ -1,6 +1,8 @@
 ---
 title: "assignment1"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 ````{r}
@@ -12,50 +14,57 @@ setwd("C:/Users/ephyto/Google Drive/coursera - Data Science Specialization/5 Rep
 getwd()
 ```
 ```{r setoptions,echo=TRUE}
-activity <- read.csv("activity.csv")
-dim(activity)
-names(activity)
+data <- read.csv("activity.csv")
+
+#convert date to data type
+data$date <- as.Date(data$date)
+dim(data)
+names(data)
 ```
 ###Q1: what is mean total number of steps per day
 
 create new dataset without na values
 ```{r}
-nactivity <- na.omit(activity)
-meanTotalSteps <- aggregate(nactivity$steps, list(nactivity$date), sum)
-names(meanTotalSteps) <- c("date", "steps")
-meanTotalSteps
+data.ignore.na <- na.omit(data)
+daily.steps <- rowsum(data.ignore.na$steps, format(data.ignore.na$date, '%Y-%m-%d'))
+daily.steps <- data.frame(daily.steps)
+names(daily.steps) <- ("steps")
+
+#meanTotalSteps <- aggregate(nactivity$steps, list(nactivity$date), sum)
+#names(meanTotalSteps) <- c("date", "steps")
+#meanTotalSteps
 ```
 mean line in magenta, median line in blue, median=mean in our example
 ```{r}
-lmts <- nrow(meanTotalSteps)
-hist(meanTotalSteps$steps, breaks=lmts)
-rug(meanTotalSteps$steps)
-abline(v=mean(meanTotalSteps$steps), col="magenta", lwd=4)
-abline(v=median(meanTotalSteps$steps), col="blue", lwd=2)
+lmts <- nrow(daily.steps)
+hist(daily.steps$steps, breaks=lmts)
+rug(daily.steps$steps)
+abline(v=mean(daily.steps$steps), col="magenta", lwd=4)
+abline(v=median(daily.steps$steps), col="blue", lwd=1)
 ```
 ```{r}
-mean(meanTotalSteps$steps)
+mean(daily.steps$steps)
 ```
 ```{r}
-median(meanTotalSteps$steps)
+median(daily.steps$steps)
 ```
 
 ###What is the average daily activity
 ```{r}
 library(plyr)
 #calculate average steps for each of 5-minute inteval during a 24-hour period
-int.mean.steps <- ddply(nactivity, ~interval, summarise, mean=mean(steps))
+interval.mean.steps <- ddply(data.ignore.na, ~interval, summarise, mean=mean(steps))
 ```
 ```{r}
 library(ggplot2)
-qplot(x=interval, y=mean, data = int.mean.steps, geom = "line", xlab="5 minutes inteval", ylab="Number of Step Count", main="Average Number of Steps Across All Days"
+qplot(x=interval, y=mean, data = interval.mean.steps, geom = "line", xlab="5 minutes inteval", ylab="Number of Step Count", main="Average Number of Steps Across All Days"
 )
 ```
 
 Report 5-min interval, on average across all the days in the dataset, contains the maximum number of steps
 
 ```{r}
-int.mean.steps[which.max(int.mean.steps$mean),]
+interval.mean.steps[which.max(interval.mean.steps$mean),]
 ```
 
 **Observations**
@@ -71,7 +80,7 @@ library(sqldf)
 ```
 ```
 tNA <- sqldf('SELECT d.* 
-        FROM "activity" as d
+        FROM "data" as d
         WHERE d.steps IS NULL 
         ORDER BY d.date, d.interval')
 ``
@@ -85,8 +94,8 @@ Filling the missing values
 ```{r}
 t1 <- sqldf('
         SELECT d.*, i.mean 
-        FROM "int.mean.steps" as i 
-        JOIN "activity" as d 
+        FROM "interval.mean.steps" as i 
+        JOIN "data" as d 
         ON d.interval = i.interval 
         ORDER BY d.date, d.interval ')
 
@@ -144,12 +153,13 @@ Use the dataset with the filled-in missing values for this part. Create a new fa
 Make  a panel plot containing a time series plot (i.e. type="|") of the 5-minutes interval (x axis) and the average number of steps taken, averaged accross all weekday days or weekend days (y-axis)
 
 ```{r}
-t1$date <- as.Date(t1$date)
+t1$dateday <- format(t1$date, "%A")
 t1$weektime <- as.factor(ifelse(weekdays(t1$date) %in%
-        c("Saturday", "Sunday"), "weekend", "weekday"))
+        c("samedi", "dimanche"), "weekend", "weekday"))
         
 t5 <- sqldf('
-        SELECT interval, avg(steps) as "mean.steps", weektime             FROM t1 
+        SELECT interval, avg(steps) as "mean.steps", weektime             
+        FROM t1 
         GROUP BY weektime, interval 
         ORDER BY interval')
 ```
